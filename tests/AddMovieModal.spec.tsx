@@ -325,4 +325,34 @@ describe("AddMovieModal Component", () => {
         const buttons = screen.getAllByRole("button");
         expect(buttons.length).toBeGreaterThan(0);
     });
+
+    test("should save the remaining Spotify IDs as soundtrack songs", () => {
+        render(
+            <AddMovieModal
+                show={true}
+                handleClose={mockHandleClose}
+                addMovie={mockAddMovie}
+            />,
+        );
+
+        userEvent.type(screen.getByLabelText(/YouTube ID/i), "movie-with-songs");
+        userEvent.click(screen.getByRole("button", { name: "Add Song" }));
+        userEvent.click(screen.getByRole("button", { name: "Add Song" }));
+
+        const textboxes = screen.getAllByRole("textbox");
+        userEvent.type(textboxes[1], "deleted-track");
+        userEvent.type(textboxes[2], "kept-track");
+
+        userEvent.click(screen.getAllByRole("button", { name: "❌" })[0]);
+        userEvent.click(screen.getByRole("button", { name: /save changes/i }));
+
+        expect(mockAddMovie).toHaveBeenCalledTimes(1);
+        expect(mockAddMovie).toHaveBeenCalledWith(
+            expect.objectContaining({
+                id: "movie-with-songs",
+                soundtrack: [{ id: "kept-track", name: "", by: "" }],
+            }),
+        );
+        expect(mockHandleClose).toHaveBeenCalledTimes(1);
+    });
 });
